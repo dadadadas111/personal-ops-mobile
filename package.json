@@ -8,8 +8,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "prebuild:android": "expo prebuild --platform android --non-interactive",
-    "build:apk": "expo prebuild --platform android --non-interactive && cd android && ./gradlew assembleRelease"
+    "prebuild:android": "expo prebuild --platform android",
+    "build:apk": "expo prebuild --platform android && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.15.13",

@@ -52,6 +52,16 @@ jobs:
       - name: Expo prebuild Android
         run: pnpm prebuild:android
 
+      - name: Cache Gradle files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-v1-${{ hashFiles('pnpm-lock.yaml', 'package.json', 'app.config.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-v1-
+
       - name: Decode Android keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -65,7 +75,7 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --build-cache
         working-directory: android
 
       - name: Upload APK artifact

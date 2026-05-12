@@ -1,11 +1,11 @@
 import 'react-native-gesture-handler';
 
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { FinanceScreen } from './src/screens/FinanceScreen';
@@ -21,19 +21,28 @@ import { palette } from './src/ui/theme';
 const Tab = createBottomTabNavigator();
 
 function Boot() {
-  const { dbReady, setDbReady, setError } = useAppStore();
+  const { dbReady, error, setDbReady, setError } = useAppStore();
 
   useEffect(() => {
     let mounted = true;
 
     (async () => {
       try {
+        if (mounted) {
+          setError(null);
+        }
+
         configureNotifications();
         await initDatabase();
-        await syncJournalNotifications();
         if (mounted) {
           setDbReady(true);
         }
+
+        void syncJournalNotifications().catch((error) => {
+          if (mounted) {
+            setError(error instanceof Error ? error.message : 'Failed to sync journal reminders');
+          }
+        });
       } catch (error) {
         if (mounted) {
           setError(error instanceof Error ? error.message : 'Failed to initialize app');
@@ -45,6 +54,19 @@ function Boot() {
       mounted = false;
     };
   }, [setDbReady, setError]);
+
+  if (!dbReady && error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24, backgroundColor: palette.background }}>
+        <Text style={{ color: palette.text, fontWeight: '700', fontSize: 18, textAlign: 'center' }}>
+          We couldn&apos;t finish preparing your local workspace.
+        </Text>
+        <Text style={{ marginTop: 12, color: palette.textMuted, textAlign: 'center', lineHeight: 22 }}>
+          {error}
+        </Text>
+      </View>
+    );
+  }
 
   if (!dbReady) {
     return (
